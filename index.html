@@ -23,6 +23,7 @@
   }
   button { font-family: inherit; }
 
+  /* Background */
   .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
         background: radial-gradient(ellipse at top, #0f0f23 0%, #07070f 65%); }
   .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55;
@@ -49,6 +50,7 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* Landing */
   .landing-content { margin: auto; max-width: 900px; text-align: center; width: 100%; padding: 20px 0; }
   .logo {
     display: inline-flex; align-items: center; gap: 10px;
@@ -128,6 +130,7 @@
   }
   .role-card:hover .role-arrow { transform: translateX(4px); color: #a5b4fc; }
 
+  /* Buttons */
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 12px 20px; border-radius: 12px;
@@ -175,6 +178,7 @@
     box-shadow: 0 0 10px rgba(139,92,246,.7);
   }
 
+  /* Child Screen */
   .child-content { margin: auto; max-width: 500px; width: 100%; text-align: center; padding: 20px 0; }
   .child-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -256,6 +260,7 @@
     text-align: center; margin-top: 14px; line-height: 1.5;
   }
 
+  /* Parent Screen */
   .parent-content { max-width: 900px; margin: 0 auto; width: 100%; padding-bottom: 40px; }
   .parent-header {
     display: flex; justify-content: space-between;
@@ -393,6 +398,7 @@
   }
   .remove-child:hover { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #f87171; }
 
+  /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 100;
     background: rgba(7,7,15,.85);
@@ -434,6 +440,7 @@
   .modal-actions { display: flex; gap: 10px; }
   .modal-actions .btn { flex: 1; justify-content: center; }
 
+  /* Toast & Banners */
   .toast-container {
     position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%);
@@ -495,6 +502,7 @@
 </div>
 
 <main id="app">
+  <!-- LANDING -->
   <section id="screen-landing" class="screen active">
     <div class="landing-content">
       <div class="logo">
@@ -537,6 +545,7 @@
     </div>
   </section>
 
+  <!-- CHILD -->
   <section id="screen-child" class="screen">
     <header class="screen-header">
       <button class="icon-btn" data-back type="button">
@@ -579,6 +588,7 @@
     </div>
   </section>
 
+  <!-- PARENT -->
   <section id="screen-parent" class="screen">
     <div class="parent-content">
       <header class="screen-header" style="padding-top:0;">
@@ -622,6 +632,7 @@
   </section>
 </main>
 
+<!-- MODAL -->
 <div class="modal-backdrop" id="add-modal">
   <div class="modal">
     <h3 class="modal-title">Add a child</h3>
@@ -636,7 +647,7 @@
 
 <div class="toast-container" id="toast-container"></div>
 
-<!-- Fallback: agar script crash ho jaye to visible warning -->
+<!-- FALLBACK SAFETY -->
 <script>
   window.__GL_READY = false;
   window.addEventListener('error', function(e) {
@@ -666,12 +677,12 @@
   });
 </script>
 
-<!-- Main app (non-module, safer on file://) -->
+<!-- MAIN SCRIPT -->
 <script>
 (function () {
 'use strict';
 
-/* ============ SAFE STORAGE (never throws) ============ */
+/* ============ SAFE STORAGE ============ */
 const memory = {};
 const LS = {
   get(k) { try { return localStorage.getItem(k); } catch { return memory[k] ?? null; } },
@@ -717,9 +728,10 @@ const toast = (msg, type) => {
   } catch (e) { console.warn('[GuardLink] toast failed', e); }
 };
 
-/* ============ FIREBASE CONFIG — paste yours here ============ */
+/* ============ FIREBASE CONFIG ============ */
+/* Yahan apna firebase config paste karo */
 const firebaseConfig = {
-   apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
+  apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
   authDomain: "childsafetyallinone.firebaseapp.com",
   databaseURL: "https://childsafetyallinone-default-rtdb.firebaseio.com",
   projectId: "childsafetyallinone",
@@ -732,29 +744,43 @@ const firebaseConfig = {
 const FIREBASE_ENABLED = typeof firebaseConfig.apiKey === 'string' && !firebaseConfig.apiKey.includes('PASTE');
 
 let fb = null;
+
 async function initFirebase() {
   if (!FIREBASE_ENABLED) {
-    document.body.classList.add('demo-mode');
-    const b = document.createElement('div');
-    b.className = 'demo-banner';
-    b.innerHTML = '<strong>Demo mode</strong> · Data is stored locally. Paste your Firebase config in <code>firebaseConfig</code> for real cross-device sync.';
-    document.body.insertBefore(b, document.body.firstChild);
-    console.log('[GuardLink] demo mode (no Firebase config)');
+    enableDemoMode();
     return;
   }
   try {
     const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const app = appMod.initializeApp(firebaseConfig);
-    fb = Object.assign({}, fsMod, { app });
-    console.log('[GuardLink] Firebase ready');
+    
+    // Initialize Firestore
+    const db = fsMod.getFirestore(app); 
+    
+    // Test connection (optional - just checks if db is working)
+    await fsMod.getDoc(fsMod.doc(db, 'test', 'connection')).catch(() => {});
+    
+    fb = Object.assign({}, fsMod, { app: app, db: db });
+    console.log('[GuardLink] Firebase ready ✅');
   } catch (e) {
     console.error('[GuardLink] Firebase init failed', e);
-    toast('Firebase init failed — falling back to demo mode', 'error');
+    toast('Firebase error — switched to demo mode', 'error');
+    enableDemoMode();
   }
 }
 
-/* ============ STORE ============ */
+function enableDemoMode() {
+  if (document.querySelector('.demo-banner')) return;
+  document.body.classList.add('demo-mode');
+  const b = document.createElement('div');
+  b.className = 'demo-banner';
+  b.innerHTML = '<strong>Demo mode</strong> · Data is stored locally. Paste your Firebase config for real sync.';
+  document.body.insertBefore(b, document.body.firstChild);
+  console.log('[GuardLink] demo mode enabled');
+}
+
+/* ============ STORE (Firebase + Local Storage) ============ */
 const DEFAULT_PERMISSIONS = {
   whatsapp: true,
   instagram: false,
@@ -783,7 +809,7 @@ const Store = {
       parentId: null,
       connected: false
     };
-    if (fb) {
+    if (fb && fb.db) {
       await fb.setDoc(fb.doc(fb.db, 'children', code), data);
     } else {
       LS.set('gl_child_' + code, JSON.stringify(data));
@@ -792,7 +818,7 @@ const Store = {
   },
 
   async getChild(code) {
-    if (fb) {
+    if (fb && fb.db) {
       const snap = await fb.getDoc(fb.doc(fb.db, 'children', code));
       return snap.exists() ? snap.data() : null;
     }
@@ -801,7 +827,7 @@ const Store = {
   },
 
   watchChild(code, cb) {
-    if (fb) {
+    if (fb && fb.db) {
       return fb.onSnapshot(fb.doc(fb.db, 'children', code), snap => {
         cb(snap.exists() ? snap.data() : null);
       });
@@ -818,7 +844,7 @@ const Store = {
     const existing = await this.getChild(code);
     if (!existing) throw new Error('CODE_NOT_FOUND');
     const data = Object.assign({}, existing, { parentId: parentId, connected: true });
-    if (fb) {
+    if (fb && fb.db) {
       await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId: parentId, connected: true });
     } else {
       LS.set('gl_child_' + code, JSON.stringify(data));
@@ -827,7 +853,7 @@ const Store = {
   },
 
   async updatePermissions(code, permissions) {
-    if (fb) {
+    if (fb && fb.db) {
       await fb.updateDoc(fb.doc(fb.db, 'children', code), { permissions: permissions });
     } else {
       const c = await this.getChild(code);
@@ -838,7 +864,7 @@ const Store = {
   },
 
   async removeChild(code) {
-    if (fb) {
+    if (fb && fb.db) {
       await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId: null, connected: false });
     } else {
       const c = await this.getChild(code);
@@ -851,7 +877,7 @@ const Store = {
 
   async addNotification(code, notif) {
     const data = Object.assign({}, notif, { id: uuid(), timestamp: Date.now() });
-    if (fb) {
+    if (fb && fb.db) {
       await fb.addDoc(fb.collection(fb.db, 'children', code, 'notifications'), data);
     } else {
       const key = 'gl_notif_' + code;
@@ -864,7 +890,7 @@ const Store = {
   },
 
   watchNotifications(code, cb) {
-    if (fb) {
+    if (fb && fb.db) {
       const q = fb.query(
         fb.collection(fb.db, 'children', code, 'notifications'),
         fb.orderBy('timestamp', 'desc'),
@@ -915,10 +941,7 @@ function showScreen(name) {
   const all = $$('.screen');
   all.forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
-  if (!el) {
-    console.warn('[GuardLink] no screen:', name);
-    return;
-  }
+  if (!el) return;
   el.classList.add('active');
   try { window.scrollTo(0, 0); } catch (_) {}
   console.log('[GuardLink] → screen:', name);
@@ -931,7 +954,6 @@ function cleanupChildSub() {
   }
 }
 
-/* Back buttons */
 $$('[data-back]').forEach(b => {
   b.addEventListener('click', () => {
     cleanupChildSub();
@@ -1108,7 +1130,6 @@ function renderParentScreen() {
   if (empty) empty.style.display = 'none';
   if (sub) sub.textContent = state.children.length + ' child' + (state.children.length > 1 ? 'ren' : '') + ' connected';
 
-  // rebuild cards preserving expand state
   const expandedCodes = $$('.child-card.expanded').map(c => c.dataset.code);
 
   grid.innerHTML = '';
@@ -1301,23 +1322,6 @@ $$('.role-card').forEach((btn) => {
     if (role === 'child')  startChild();
     if (role === 'parent') startParent();
   });
-});
-
-/* ============ PWA ============ */
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const b = $('#install-btn');
-  if (b) b.style.display = '';
-});
-$('#install-btn').addEventListener('click', async () => {
-  if (!deferredPrompt) { toast('Use your browser menu → "Add to Home screen"'); return; }
-  deferredPrompt.prompt();
-  const choice = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  if (choice && choice.outcome === 'accepted') toast('Installed — open from home screen', 'success');
-  $('#install-btn').style.display = 'none';
 });
 
 /* ============ BOOT ============ */
