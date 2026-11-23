@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#07070f" />
 <title>GuardLink — Parental Notification Bridge</title>
+<link rel="manifest" id="dynamic-manifest" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -84,6 +85,24 @@
     color: #94a3b8; max-width: 580px;
     margin: 0 auto 48px; line-height: 1.65;
   }
+  
+  /* Install Button on Landing */
+  .install-wrap {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+  }
+  .install-btn-hero {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 24px; border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #fff; font-weight: 600; font-size: 15px;
+    cursor: pointer; transition: all .3s;
+    backdrop-filter: blur(10px);
+  }
+  .install-btn-hero:hover { background: rgba(255,255,255,.15); transform: translateY(-2px); }
+
   .role-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -542,6 +561,15 @@
           <div class="role-desc">Add one or more children, control permissions per app, and receive their notifications in real time.</div>
         </button>
       </div>
+
+      <!-- NAYA INSTALL BUTTON -->
+      <div class="install-wrap" id="install-container" style="display:none;">
+        <button class="install-btn-hero" id="install-btn-hero" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M3 21h18"/></svg>
+          Install App to Home Screen
+        </button>
+      </div>
+
     </div>
   </section>
 
@@ -689,7 +717,6 @@ const LS = {
   set(k, v) { try { localStorage.setItem(k, v); } catch { memory[k] = v; } },
   remove(k) { try { localStorage.removeItem(k); } catch { delete memory[k]; } }
 };
-console.log('[GuardLink] safe storage ready');
 
 /* ============ HELPERS ============ */
 const $  = (s, r = document) => r.querySelector(s);
@@ -729,7 +756,6 @@ const toast = (msg, type) => {
 };
 
 /* ============ FIREBASE CONFIG ============ */
-/* Yahan apna firebase config paste karo */
 const firebaseConfig = {
   apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
   authDomain: "childsafetyallinone.firebaseapp.com",
@@ -744,7 +770,6 @@ const firebaseConfig = {
 const FIREBASE_ENABLED = typeof firebaseConfig.apiKey === 'string' && !firebaseConfig.apiKey.includes('PASTE');
 
 let fb = null;
-
 async function initFirebase() {
   if (!FIREBASE_ENABLED) {
     enableDemoMode();
@@ -754,13 +779,7 @@ async function initFirebase() {
     const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const app = appMod.initializeApp(firebaseConfig);
-    
-    // Initialize Firestore
     const db = fsMod.getFirestore(app); 
-    
-    // Test connection (optional - just checks if db is working)
-    await fsMod.getDoc(fsMod.doc(db, 'test', 'connection')).catch(() => {});
-    
     fb = Object.assign({}, fsMod, { app: app, db: db });
     console.log('[GuardLink] Firebase ready ✅');
   } catch (e) {
@@ -933,9 +952,6 @@ try {
   if (!Array.isArray(state.children)) state.children = [];
 } catch { state.children = []; }
 
-console.log('[GuardLink] state ready, parentId:', state.parentId);
-console.log('[GuardLink] saved children:', state.children);
-
 /* ============ NAVIGATION ============ */
 function showScreen(name) {
   const all = $$('.screen');
@@ -944,7 +960,6 @@ function showScreen(name) {
   if (!el) return;
   el.classList.add('active');
   try { window.scrollTo(0, 0); } catch (_) {}
-  console.log('[GuardLink] → screen:', name);
 }
 
 function cleanupChildSub() {
@@ -963,7 +978,6 @@ $$('[data-back]').forEach(b => {
 
 /* ============ CHILD FLOW ============ */
 async function startChild() {
-  console.log('[GuardLink] startChild()');
   try {
     let code = LS.get('gl_my_child_code');
     let exists = code ? await Store.getChild(code) : null;
@@ -972,9 +986,6 @@ async function startChild() {
       code = genCode();
       LS.set('gl_my_child_code', code);
       await Store.createChild(code);
-      console.log('[GuardLink] created child:', code);
-    } else {
-      console.log('[GuardLink] resumed child:', code);
     }
 
     state.childCode = code;
@@ -1042,7 +1053,6 @@ $('#copy-btn').addEventListener('click', async () => {
       if (span) span.textContent = 'Copy code';
     }, 1800);
   } catch (e) {
-    console.warn(e);
     toast('Copy failed — select the code manually', 'error');
   }
 });
@@ -1062,7 +1072,6 @@ $('#test-notif-btn').addEventListener('click', async () => {
     await Store.addNotification(state.childCode, Object.assign({ app: pick }, samples[pick]));
     toast('Notification forwarded to parent', 'success');
   } catch (e) {
-    console.error(e);
     toast('Could not send test notification', 'error');
   }
 });
@@ -1079,7 +1088,6 @@ function saveParentChildren() {
 }
 
 async function startParent() {
-  console.log('[GuardLink] startParent()');
   try {
     loadParentChildren();
     for (const code of state.children.slice()) {
@@ -1094,7 +1102,6 @@ async function startParent() {
     renderParentScreen();
     showScreen('parent');
   } catch (e) {
-    console.error('[GuardLink] startParent failed', e);
     toast('Could not start Parent mode: ' + e.message, 'error');
   }
 }
@@ -1180,7 +1187,6 @@ function buildChildCard(code) {
       renderParentScreen();
       toast('Child removed', 'success');
     } catch (err) {
-      console.error(err);
       toast('Could not remove child', 'error');
     }
   });
@@ -1235,7 +1241,7 @@ async function hydrateCardBody(card, code) {
         btn.classList.toggle('on');
         perms[key] = btn.classList.contains('on');
         try { await Store.updatePermissions(code, Object.assign({}, perms)); }
-        catch (err) { console.error(err); toast('Could not update permission', 'error'); }
+        catch (err) { toast('Could not update permission', 'error'); }
       });
       list.appendChild(row);
     });
@@ -1309,7 +1315,6 @@ $('#modal-connect').addEventListener('click', async () => {
     renderParentScreen();
     toast('Child connected successfully', 'success');
   } catch (err) {
-    console.error('[GuardLink] connect failed', err);
     toast('Could not connect: ' + err.message, 'error');
   }
 });
@@ -1318,18 +1323,91 @@ $('#modal-connect').addEventListener('click', async () => {
 $$('.role-card').forEach((btn) => {
   btn.addEventListener('click', () => {
     const role = btn.dataset.role;
-    console.log('[GuardLink] role clicked:', role);
     if (role === 'child')  startChild();
     if (role === 'parent') startParent();
   });
 });
+
+/* ============ PWA INSTALL LOGIC ============ */
+let deferredPrompt = null;
+
+// 1. Dynamic Manifest (Taki icon aur naam sahi dikhe)
+(function injectManifest() {
+  const iconSvg = "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+       <rect width='100' height='100' rx='22' fill='%236366f1'/>
+       <path d='M50 22 L74 34 L74 56 Q74 74 50 82 Q26 74 26 56 L26 34 Z' fill='white'/>
+       <circle cx='50' cy='52' r='6' fill='%236366f1'/>
+     </svg>`
+  );
+  const manifest = {
+    name: 'GuardLink',
+    short_name: 'GuardLink',
+    description: 'Parental Notification Bridge',
+    start_url: window.location.href,
+    display: 'standalone',
+    background_color: '#07070f',
+    theme_color: '#07070f',
+    icons: [
+      { src: iconSvg, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: iconSvg, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  $('#dynamic-manifest').href = URL.createObjectURL(blob);
+})();
+
+// 2. Service Worker for PWA (Installable banane ke liye zaroori hai)
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    self.addEventListener('install', (e) => self.skipWaiting());
+    self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+    self.addEventListener('fetch', (e) => {
+      // Basic pass-through so browser treats it as a PWA
+      e.respondWith(fetch(e.request).catch(() => new Response('')));
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration failed', err));
+}
+
+// 3. Show Install Button
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show button on landing page
+  const heroBtn = $('#install-container');
+  if (heroBtn) heroBtn.style.display = 'flex';
+  // Show button on parent page
+  const parentBtn = $('#install-btn');
+  if (parentBtn) parentBtn.style.display = '';
+});
+
+// 4. Click Handler
+const handleInstallClick = async () => {
+  if (!deferredPrompt) {
+    toast('App already installed, or use browser menu "Add to Home Screen"', 'info');
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    toast('App installed successfully!', 'success');
+    $('#install-container').style.display = 'none';
+    $('#install-btn').style.display = 'none';
+  }
+  deferredPrompt = null;
+};
+
+$('#install-btn-hero').addEventListener('click', handleInstallClick);
+$('#install-btn').addEventListener('click', handleInstallClick);
 
 /* ============ BOOT ============ */
 (async function boot() {
   try {
     await initFirebase();
     window.__GL_READY = true;
-    console.log('[GuardLink] ✅ ready');
   } catch (e) {
     console.error('[GuardLink] boot failed', e);
   }
