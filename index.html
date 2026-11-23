@@ -4,13 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#07070f" />
-<meta name="description" content="GuardLink — Bridge your child's notifications to your phone, with full permission control." />
 <title>GuardLink — Parental Notification Bridge</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-<link rel="manifest" id="manifest-link" />
 
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,8 +23,7 @@
   }
   button { font-family: inherit; }
 
-  /* ---------- Animated background ---------- */
-  .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden;
+  .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
         background: radial-gradient(ellipse at top, #0f0f23 0%, #07070f 65%); }
   .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55;
          animation: float 22s ease-in-out infinite; will-change: transform; }
@@ -39,12 +36,11 @@
     66% { transform: translate(-40px,50px) scale(.94); }
   }
   .noise {
-    position: absolute; inset: 0; opacity: .025; pointer-events: none;
+    position: absolute; inset: 0; opacity: .025;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ---------- Layout ---------- */
-  main#app { position: relative; min-height: 100vh; }
+  main#app { position: relative; z-index: 1; min-height: 100vh; }
   .screen { display: none; min-height: 100vh; padding: 24px;
             flex-direction: column; animation: screenIn .55s cubic-bezier(.16,1,.3,1); }
   .screen.active { display: flex; }
@@ -53,7 +49,6 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ---------- Landing ---------- */
   .landing-content { margin: auto; max-width: 900px; text-align: center; width: 100%; padding: 20px 0; }
   .logo {
     display: inline-flex; align-items: center; gap: 10px;
@@ -63,7 +58,6 @@
     border-radius: 999px;
     font-weight: 600; font-size: 14px;
     backdrop-filter: blur(10px);
-    animation: screenIn .6s;
   }
   .logo-mark {
     width: 24px; height: 24px; border-radius: 7px;
@@ -82,19 +76,16 @@
     background: linear-gradient(180deg, #fff 0%, #a5b4fc 110%);
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: screenIn .7s .05s backwards;
   }
   .hero-sub {
     font-size: clamp(15px, 2vw, 18px);
     color: #94a3b8; max-width: 580px;
     margin: 0 auto 48px; line-height: 1.65;
-    animation: screenIn .7s .1s backwards;
   }
   .role-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px; max-width: 720px; margin: 0 auto;
-    animation: screenIn .7s .15s backwards;
   }
   .role-card {
     position: relative; overflow: hidden;
@@ -110,7 +101,7 @@
   .role-card::before {
     content: ''; position: absolute; inset: 0;
     background: linear-gradient(135deg, transparent 40%, rgba(99,102,241,.18));
-    opacity: 0; transition: opacity .4s;
+    opacity: 0; transition: opacity .4s; pointer-events: none;
   }
   .role-card:hover { transform: translateY(-6px); border-color: rgba(139,92,246,.4);
                      box-shadow: 0 24px 60px -20px rgba(99,102,241,.35); }
@@ -133,11 +124,10 @@
   .role-desc { color: #94a3b8; font-size: 14px; line-height: 1.6; }
   .role-arrow {
     position: absolute; top: 34px; right: 28px;
-    color: #64748b; transition: transform .3s, color .3s;
+    color: #64748b; transition: transform .3s, color .3s; pointer-events: none;
   }
   .role-card:hover .role-arrow { transform: translateX(4px); color: #a5b4fc; }
 
-  /* ---------- Shared buttons ---------- */
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 12px 20px; border-radius: 12px;
@@ -168,7 +158,6 @@
   }
   .icon-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.05); }
 
-  /* ---------- Screen header ---------- */
   .screen-header {
     display: flex; justify-content: space-between;
     align-items: center; margin-bottom: 24px;
@@ -186,7 +175,6 @@
     box-shadow: 0 0 10px rgba(139,92,246,.7);
   }
 
-  /* ---------- Child screen ---------- */
   .child-content { margin: auto; max-width: 500px; width: 100%; text-align: center; padding: 20px 0; }
   .child-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -268,7 +256,6 @@
     text-align: center; margin-top: 14px; line-height: 1.5;
   }
 
-  /* ---------- Parent screen ---------- */
   .parent-content { max-width: 900px; margin: 0 auto; width: 100%; padding-bottom: 40px; }
   .parent-header {
     display: flex; justify-content: space-between;
@@ -318,7 +305,7 @@
   }
   .child-info { flex: 1; min-width: 0; }
   .child-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
-  .child-code { font-size: 12px; color: #64748b; font-family: 'JetBrains Mono', 'SFMono-Regular', monospace; letter-spacing: .12em; }
+  .child-code { font-size: 12px; color: #64748b; font-family: 'SFMono-Regular', monospace; letter-spacing: .12em; }
 
   .notif-badge {
     display: inline-flex; align-items: center; justify-content: center;
@@ -327,7 +314,6 @@
     background: linear-gradient(135deg, #ec4899, #f43f5e);
     color: #fff; font-size: 11px; font-weight: 700;
     box-shadow: 0 4px 12px -2px rgba(236,72,153,.5);
-    animation: screenIn .3s;
   }
   .expand-icon { color: #64748b; transition: transform .3s; }
   .child-card.expanded .expand-icon { transform: rotate(180deg); }
@@ -407,7 +393,6 @@
   }
   .remove-child:hover { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #f87171; }
 
-  /* ---------- Modal ---------- */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 100;
     background: rgba(7,7,15,.85);
@@ -449,7 +434,6 @@
   .modal-actions { display: flex; gap: 10px; }
   .modal-actions .btn { flex: 1; justify-content: center; }
 
-  /* ---------- Toast ---------- */
   .toast-container {
     position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%);
@@ -484,6 +468,12 @@
   .demo-banner strong { color: #fcd34d; }
   body.demo-mode { padding-top: 32px; }
 
+  .error-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+    padding: 10px 16px; background: #dc2626; color: #fff;
+    font: 13px system-ui, sans-serif; text-align: center;
+  }
+
   @media (max-width: 560px) {
     .code-letter { width: 44px; height: 60px; font-size: 26px; border-radius: 11px; }
     .code-letters { gap: 7px; }
@@ -497,7 +487,6 @@
 </head>
 <body>
 
-<!-- animated background -->
 <div class="bg">
   <div class="orb orb1"></div>
   <div class="orb orb2"></div>
@@ -506,8 +495,6 @@
 </div>
 
 <main id="app">
-
-  <!-- ============ LANDING ============ -->
   <section id="screen-landing" class="screen active">
     <div class="landing-content">
       <div class="logo">
@@ -519,10 +506,10 @@
         <span>GuardLink</span>
       </div>
       <h1 class="hero-title">Stay close,<br/>stay informed.</h1>
-      <p class="hero-sub">A gentle bridge between your child's phone and yours. See what matters — only what you've allowed. Nothing more, nothing less.</p>
+      <p class="hero-sub">A gentle bridge between your child's phone and yours. See what matters — only what you've allowed.</p>
 
       <div class="role-cards">
-        <button class="role-card" data-role="child">
+        <button class="role-card" data-role="child" type="button">
           <div class="role-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2v6M6 22h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"/>
@@ -534,7 +521,7 @@
           <div class="role-desc">Get a 6-letter code and share it with your parent. Then choose exactly what to share.</div>
         </button>
 
-        <button class="role-card" data-role="parent">
+        <button class="role-card" data-role="parent" type="button">
           <div class="role-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
@@ -550,10 +537,9 @@
     </div>
   </section>
 
-  <!-- ============ CHILD SCREEN ============ -->
   <section id="screen-child" class="screen">
     <header class="screen-header">
-      <button class="icon-btn" data-back>
+      <button class="icon-btn" data-back type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </button>
       <div class="header-title"><span class="dot"></span> Child Mode</div>
@@ -570,7 +556,7 @@
 
       <div class="code-display">
         <div class="code-letters" id="code-letters"></div>
-        <button class="copy-btn" id="copy-btn">
+        <button class="copy-btn" id="copy-btn" type="button">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           <span>Copy code</span>
         </button>
@@ -584,7 +570,7 @@
         </div>
       </div>
 
-      <button class="btn btn-ghost" id="test-notif-btn" style="width:100%; justify-content:center; margin-bottom:12px;">
+      <button class="btn btn-ghost" id="test-notif-btn" type="button" style="width:100%; justify-content:center; margin-bottom:12px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         Send test notification (demo)
       </button>
@@ -593,11 +579,10 @@
     </div>
   </section>
 
-  <!-- ============ PARENT SCREEN ============ -->
   <section id="screen-parent" class="screen">
     <div class="parent-content">
       <header class="screen-header" style="padding-top:0;">
-        <button class="icon-btn" data-back>
+        <button class="icon-btn" data-back type="button">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div class="header-title"><span class="dot"></span> Parent Mode</div>
@@ -610,11 +595,11 @@
           <p class="parent-sub" id="parent-sub">Connect a child to begin.</p>
         </div>
         <div class="header-actions">
-          <button class="btn btn-ghost btn-sm" id="install-btn" style="display:none;">
+          <button class="btn btn-ghost btn-sm" id="install-btn" type="button" style="display:none;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M3 21h18"/></svg>
             Add to home screen
           </button>
-          <button class="btn btn-primary btn-sm" id="add-child-btn">
+          <button class="btn btn-primary btn-sm" id="add-child-btn" type="button">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             Add child
           </button>
@@ -626,7 +611,7 @@
           <div class="empty-icon">👨‍👩‍👧</div>
           <div class="empty-title">No children connected yet</div>
           <div class="empty-desc">Tap <strong>Add child</strong> and enter the 6-letter code from your child's phone.</div>
-          <button class="btn btn-primary" id="empty-add-btn">
+          <button class="btn btn-primary" id="empty-add-btn" type="button">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             Add your first child
           </button>
@@ -637,43 +622,67 @@
   </section>
 </main>
 
-<!-- ============ MODAL ============ -->
 <div class="modal-backdrop" id="add-modal">
   <div class="modal">
     <h3 class="modal-title">Add a child</h3>
     <p class="modal-desc">Ask your child to open GuardLink in Child mode and share their 6-letter code.</p>
     <input class="code-input" id="code-input" type="text" inputmode="text" autocomplete="off" maxlength="6" placeholder="ABCDEF" />
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
-      <button class="btn btn-primary" id="modal-connect">Connect</button>
+      <button class="btn btn-ghost" id="modal-cancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="modal-connect" type="button">Connect</button>
     </div>
   </div>
 </div>
 
 <div class="toast-container" id="toast-container"></div>
 
-<script type="module">
-/* =========================================================
-   1. CONFIG — paste your Firebase config here
-   ========================================================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
-  authDomain: "childsafetyallinone.firebaseapp.com",
-  databaseURL: "https://childsafetyallinone-default-rtdb.firebaseio.com",
-  projectId: "childsafetyallinone",
-  storageBucket: "childsafetyallinone.firebasestorage.app",
-  messagingSenderId: "66259398440",
-  appId: "1:66259398440:web:7641b41fdd4bcd42b56a1d",
-  measurementId: "G-GW844RCZD9"
+<!-- Fallback: agar script crash ho jaye to visible warning -->
+<script>
+  window.__GL_READY = false;
+  window.addEventListener('error', function(e) {
+    console.error('[GuardLink error]', e.error || e.message);
+    try {
+      if (document.body && !document.querySelector('.error-banner')) {
+        var b = document.createElement('div');
+        b.className = 'error-banner';
+        b.textContent = '⚠️ ' + ((e.error && e.error.message) || e.message || 'Script error');
+        document.body.appendChild(b);
+      }
+    } catch (_) {}
+  });
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (!window.__GL_READY) {
+        try {
+          if (!document.querySelector('.error-banner')) {
+            var b = document.createElement('div');
+            b.className = 'error-banner';
+            b.textContent = '⚠️ Script load failed. Press F12 → Console tab to see the error.';
+            document.body.appendChild(b);
+          }
+        } catch (_) {}
+      }
+    }, 1500);
+  });
+</script>
+
+<!-- Main app (non-module, safer on file://) -->
+<script>
+(function () {
+'use strict';
+
+/* ============ SAFE STORAGE (never throws) ============ */
+const memory = {};
+const LS = {
+  get(k) { try { return localStorage.getItem(k); } catch { return memory[k] ?? null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { memory[k] = v; } },
+  remove(k) { try { localStorage.removeItem(k); } catch { delete memory[k]; } }
 };
+console.log('[GuardLink] safe storage ready');
 
-const FIREBASE_ENABLED = !firebaseConfig.apiKey.includes("PASTE");
-
-/* =========================================================
-   2. Tiny helpers
-   ========================================================= */
+/* ============ HELPERS ============ */
 const $  = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const $$ = (s, r = document) => [].slice.call(r.querySelectorAll(s));
 
 const uuid = () => {
   try { return crypto.randomUUID(); }
@@ -681,7 +690,6 @@ const uuid = () => {
 };
 
 const genCode = () => {
-  // 6 uppercase letters, excluding I & O to avoid confusion
   const C = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   let s = '';
   for (let i = 0; i < 6; i++) s += C[Math.floor(Math.random() * C.length)];
@@ -696,42 +704,57 @@ const timeAgo = (ts) => {
   return Math.floor(d / 86400000) + 'd ago';
 };
 
-const toast = (msg, type = 'info') => {
-  const el = document.createElement('div');
-  el.className = 'toast' + (type !== 'info' ? ' ' + type : '');
-  el.textContent = msg;
-  $('#toast-container').appendChild(el);
-  setTimeout(() => { el.style.transition = 'opacity .3s, transform .3s'; el.style.opacity = 0; el.style.transform = 'translateY(10px)'; }, 2600);
-  setTimeout(() => el.remove(), 3000);
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const toast = (msg, type) => {
+  try {
+    const el = document.createElement('div');
+    el.className = 'toast' + (type && type !== 'info' ? ' ' + type : '');
+    el.textContent = msg;
+    $('#toast-container').appendChild(el);
+    setTimeout(() => { el.style.transition = 'opacity .3s, transform .3s'; el.style.opacity = 0; el.style.transform = 'translateY(10px)'; }, 2600);
+    setTimeout(() => el.remove(), 3000);
+  } catch (e) { console.warn('[GuardLink] toast failed', e); }
 };
 
-/* =========================================================
-   3. Firebase init (only if configured)
-   ========================================================= */
+/* ============ FIREBASE CONFIG — paste yours here ============ */
+const firebaseConfig = {
+   apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
+  authDomain: "childsafetyallinone.firebaseapp.com",
+  databaseURL: "https://childsafetyallinone-default-rtdb.firebaseio.com",
+  projectId: "childsafetyallinone",
+  storageBucket: "childsafetyallinone.firebasestorage.app",
+  messagingSenderId: "66259398440",
+  appId: "1:66259398440:web:7641b41fdd4bcd42b56a1d",
+  measurementId: "G-GW844RCZD9"
+};
+
+const FIREBASE_ENABLED = typeof firebaseConfig.apiKey === 'string' && !firebaseConfig.apiKey.includes('PASTE');
+
 let fb = null;
 async function initFirebase() {
   if (!FIREBASE_ENABLED) {
     document.body.classList.add('demo-mode');
     const b = document.createElement('div');
     b.className = 'demo-banner';
-    b.innerHTML = '<strong>Demo mode</strong> · Data is stored locally in this browser. Paste Firebase config in <code>firebaseConfig</code> to sync across real devices.';
-    document.body.prepend(b);
+    b.innerHTML = '<strong>Demo mode</strong> · Data is stored locally. Paste your Firebase config in <code>firebaseConfig</code> for real cross-device sync.';
+    document.body.insertBefore(b, document.body.firstChild);
+    console.log('[GuardLink] demo mode (no Firebase config)');
     return;
   }
   try {
     const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const app = appMod.initializeApp(firebaseConfig);
-    fb = { ...fsMod, app };
+    fb = Object.assign({}, fsMod, { app });
+    console.log('[GuardLink] Firebase ready');
   } catch (e) {
-    console.error('Firebase init failed', e);
-    toast('Firebase init failed — using demo mode', 'error');
+    console.error('[GuardLink] Firebase init failed', e);
+    toast('Firebase init failed — falling back to demo mode', 'error');
   }
 }
 
-/* =========================================================
-   4. Storage abstraction (Firebase ↔ localStorage)
-   ========================================================= */
+/* ============ STORE ============ */
 const DEFAULT_PERMISSIONS = {
   whatsapp: true,
   instagram: false,
@@ -753,17 +776,17 @@ const PERM_META = {
 const Store = {
   async createChild(code) {
     const data = {
-      code,
+      code: code,
       deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile device' : 'Desktop',
       createdAt: Date.now(),
-      permissions: { ...DEFAULT_PERMISSIONS },
+      permissions: Object.assign({}, DEFAULT_PERMISSIONS),
       parentId: null,
       connected: false
     };
     if (fb) {
       await fb.setDoc(fb.doc(fb.db, 'children', code), data);
     } else {
-      localStorage.setItem('gl_child_' + code, JSON.stringify(data));
+      LS.set('gl_child_' + code, JSON.stringify(data));
     }
     return data;
   },
@@ -773,7 +796,7 @@ const Store = {
       const snap = await fb.getDoc(fb.doc(fb.db, 'children', code));
       return snap.exists() ? snap.data() : null;
     }
-    const raw = localStorage.getItem('gl_child_' + code);
+    const raw = LS.get('gl_child_' + code);
     return raw ? JSON.parse(raw) : null;
   },
 
@@ -787,34 +810,34 @@ const Store = {
       if (e.key === 'gl_child_' + code) cb(e.newValue ? JSON.parse(e.newValue) : null);
     };
     window.addEventListener('storage', handler);
-    this.getChild(code).then(cb);
+    this.getChild(code).then(cb).catch(() => cb(null));
     return () => window.removeEventListener('storage', handler);
   },
 
   async connectParent(code, parentId) {
     const existing = await this.getChild(code);
     if (!existing) throw new Error('CODE_NOT_FOUND');
-    const data = { ...existing, parentId, connected: true };
+    const data = Object.assign({}, existing, { parentId: parentId, connected: true });
     if (fb) {
-      await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId, connected: true });
+      await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId: parentId, connected: true });
     } else {
-      localStorage.setItem('gl_child_' + code, JSON.stringify(data));
+      LS.set('gl_child_' + code, JSON.stringify(data));
     }
     return data;
   },
 
   async updatePermissions(code, permissions) {
     if (fb) {
-      await fb.updateDoc(fb.doc(fb.db, 'children', code), { permissions });
+      await fb.updateDoc(fb.doc(fb.db, 'children', code), { permissions: permissions });
     } else {
       const c = await this.getChild(code);
       if (!c) return;
       c.permissions = permissions;
-      localStorage.setItem('gl_child_' + code, JSON.stringify(c));
+      LS.set('gl_child_' + code, JSON.stringify(c));
     }
   },
 
-  async removeChild(code, parentId) {
+  async removeChild(code) {
     if (fb) {
       await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId: null, connected: false });
     } else {
@@ -822,19 +845,20 @@ const Store = {
       if (!c) return;
       c.parentId = null;
       c.connected = false;
-      localStorage.setItem('gl_child_' + code, JSON.stringify(c));
+      LS.set('gl_child_' + code, JSON.stringify(c));
     }
   },
 
   async addNotification(code, notif) {
-    const data = { ...notif, id: uuid(), timestamp: Date.now() };
+    const data = Object.assign({}, notif, { id: uuid(), timestamp: Date.now() });
     if (fb) {
       await fb.addDoc(fb.collection(fb.db, 'children', code, 'notifications'), data);
     } else {
       const key = 'gl_notif_' + code;
-      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      let arr = [];
+      try { arr = JSON.parse(LS.get(key) || '[]'); } catch { arr = []; }
       arr.unshift(data);
-      localStorage.setItem(key, JSON.stringify(arr.slice(0, 100)));
+      LS.set(key, JSON.stringify(arr.slice(0, 100)));
     }
     return data;
   },
@@ -849,74 +873,109 @@ const Store = {
       return fb.onSnapshot(q, snap => cb(snap.docs.map(d => d.data())));
     }
     const key = 'gl_notif_' + code;
-    const handler = (e) => { if (e.key === key) cb(JSON.parse(e.newValue || '[]')); };
+    const handler = (e) => {
+      if (e.key === key) {
+        try { cb(JSON.parse(e.newValue || '[]')); } catch { cb([]); }
+      }
+    };
     window.addEventListener('storage', handler);
-    cb(JSON.parse(localStorage.getItem(key) || '[]'));
+    let initial = [];
+    try { initial = JSON.parse(LS.get(key) || '[]'); } catch { initial = []; }
+    cb(initial);
     return () => window.removeEventListener('storage', handler);
   }
 };
 
-/* =========================================================
-   5. App state
-   ========================================================= */
+/* ============ STATE ============ */
+let parentId = LS.get('gl_parent_id');
+if (!parentId) {
+  parentId = uuid();
+  LS.set('gl_parent_id', parentId);
+}
+
 const state = {
-  childCode:   null,
-  childData:   null,
-  childSub:    null,
-  parentId:    localStorage.getItem('gl_parent_id') || (() => {
-    const id = uuid(); localStorage.setItem('gl_parent_id', id); return id;
-  })(),
-  children:    JSON.parse(localStorage.getItem('gl_parent_children') || '[]'), // [{code, data, notifications}]
-  parentSubs:  {} // code -> { childUnsub, notifUnsub }
+  childCode: null,
+  childData: null,
+  childSub: null,
+  parentId: parentId,
+  children: [],
+  parentSubs: {}
 };
 
-/* =========================================================
-   6. Navigation
-   ========================================================= */
-function showScreen(name) {
-  $$('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('screen-' + name);
-  if (!el) return;
-  el.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
-}
+try {
+  state.children = JSON.parse(LS.get('gl_parent_children') || '[]');
+  if (!Array.isArray(state.children)) state.children = [];
+} catch { state.children = []; }
 
-$$('[data-back]').forEach(b => b.addEventListener('click', () => {
-  cleanupChildSub();
-  showScreen('landing');
-}));
+console.log('[GuardLink] state ready, parentId:', state.parentId);
+console.log('[GuardLink] saved children:', state.children);
+
+/* ============ NAVIGATION ============ */
+function showScreen(name) {
+  const all = $$('.screen');
+  all.forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (!el) {
+    console.warn('[GuardLink] no screen:', name);
+    return;
+  }
+  el.classList.add('active');
+  try { window.scrollTo(0, 0); } catch (_) {}
+  console.log('[GuardLink] → screen:', name);
+}
 
 function cleanupChildSub() {
-  if (state.childSub) { try { state.childSub(); } catch {} state.childSub = null; }
+  if (state.childSub) {
+    try { state.childSub(); } catch (_) {}
+    state.childSub = null;
+  }
 }
 
-/* =========================================================
-   7. Child flow
-   ========================================================= */
-async function startChild() {
-  let code = localStorage.getItem('gl_my_child_code');
-  let exists = code ? await Store.getChild(code) : null;
-  if (!code || !exists) {
-    code = genCode();
-    localStorage.setItem('gl_my_child_code', code);
-    await Store.createChild(code);
-  }
-  state.childCode = code;
-  state.childData = await Store.getChild(code);
-  renderChildScreen();
-
-  cleanupChildSub();
-  state.childSub = Store.watchChild(code, (data) => {
-    if (!data) return;
-    state.childData = data;
-    updateChildStatus(data);
+/* Back buttons */
+$$('[data-back]').forEach(b => {
+  b.addEventListener('click', () => {
+    cleanupChildSub();
+    showScreen('landing');
   });
+});
 
-  showScreen('child');
+/* ============ CHILD FLOW ============ */
+async function startChild() {
+  console.log('[GuardLink] startChild()');
+  try {
+    let code = LS.get('gl_my_child_code');
+    let exists = code ? await Store.getChild(code) : null;
+
+    if (!code || !exists) {
+      code = genCode();
+      LS.set('gl_my_child_code', code);
+      await Store.createChild(code);
+      console.log('[GuardLink] created child:', code);
+    } else {
+      console.log('[GuardLink] resumed child:', code);
+    }
+
+    state.childCode = code;
+    state.childData = await Store.getChild(code);
+
+    renderChildScreen();
+    showScreen('child');
+
+    cleanupChildSub();
+    state.childSub = Store.watchChild(code, (data) => {
+      if (!data) return;
+      state.childData = data;
+      updateChildStatus(data);
+    });
+  } catch (err) {
+    console.error('[GuardLink] startChild failed', err);
+    toast('Could not start Child mode: ' + err.message, 'error');
+  }
 }
 
 function renderChildScreen() {
   const container = $('#code-letters');
+  if (!container) return;
   container.innerHTML = '';
   for (const ch of state.childCode) {
     const d = document.createElement('div');
@@ -924,14 +983,19 @@ function renderChildScreen() {
     d.textContent = ch;
     container.appendChild(d);
   }
-  $('#copy-btn').classList.remove('copied');
-  $('#copy-btn').querySelector('span').textContent = 'Copy code';
+  const cb = $('#copy-btn');
+  if (cb) {
+    cb.classList.remove('copied');
+    const span = cb.querySelector('span');
+    if (span) span.textContent = 'Copy code';
+  }
   updateChildStatus(state.childData || {});
 }
 
 function updateChildStatus(data) {
   const dot = $('#status-dot');
   const val = $('#status-value');
+  if (!dot || !val) return;
   if (data && data.connected) {
     dot.classList.add('connected');
     val.classList.add('connected');
@@ -948,19 +1012,21 @@ $('#copy-btn').addEventListener('click', async () => {
     await navigator.clipboard.writeText(state.childCode);
     const btn = $('#copy-btn');
     btn.classList.add('copied');
-    btn.querySelector('span').textContent = 'Copied!';
+    const span = btn.querySelector('span');
+    if (span) span.textContent = 'Copied!';
     toast('Code copied to clipboard', 'success');
     setTimeout(() => {
       btn.classList.remove('copied');
-      btn.querySelector('span').textContent = 'Copy code';
+      if (span) span.textContent = 'Copy code';
     }, 1800);
-  } catch {
+  } catch (e) {
+    console.warn(e);
     toast('Copy failed — select the code manually', 'error');
   }
 });
 
 $('#test-notif-btn').addEventListener('click', async () => {
-  if (!state.childCode) return;
+  if (!state.childCode) { toast('Open child mode first', 'error'); return; }
   const apps = ['whatsapp', 'instagram', 'sms', 'calls', 'other'];
   const pick = apps[Math.floor(Math.random() * apps.length)];
   const samples = {
@@ -970,55 +1036,60 @@ $('#test-notif-btn').addEventListener('click', async () => {
     calls:     { sender: 'Unknown number',  body: 'Missed call · 2 attempts' },
     other:     { sender: 'System',          body: 'Battery low — 15% remaining.' }
   };
-  await Store.addNotification(state.childCode, { app: pick, ...samples[pick] });
-  toast('Notification forwarded to parent', 'success');
+  try {
+    await Store.addNotification(state.childCode, Object.assign({ app: pick }, samples[pick]));
+    toast('Notification forwarded to parent', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Could not send test notification', 'error');
+  }
 });
 
-/* =========================================================
-   8. Parent flow
-   ========================================================= */
+/* ============ PARENT FLOW ============ */
 function loadParentChildren() {
-  try { state.children = JSON.parse(localStorage.getItem('gl_parent_children') || '[]'); }
-  catch { state.children = []; }
+  try {
+    const parsed = JSON.parse(LS.get('gl_parent_children') || '[]');
+    if (Array.isArray(parsed)) state.children = parsed;
+  } catch (_) {}
 }
 function saveParentChildren() {
-  localStorage.setItem('gl_parent_children', JSON.stringify(state.children));
+  LS.set('gl_parent_children', JSON.stringify(state.children));
 }
 
 async function startParent() {
-  loadParentChildren();
-  // Hydrate & subscribe
-  for (const code of [...state.children]) {
-    const data = await Store.getChild(code);
-    if (!data) {
-      state.children = state.children.filter(c => c !== code);
-      continue;
+  console.log('[GuardLink] startParent()');
+  try {
+    loadParentChildren();
+    for (const code of state.children.slice()) {
+      const data = await Store.getChild(code);
+      if (!data) {
+        state.children = state.children.filter(c => c !== code);
+        continue;
+      }
+      subscribeParentToChild(code);
     }
-    subscribeParentToChild(code);
+    saveParentChildren();
+    renderParentScreen();
+    showScreen('parent');
+  } catch (e) {
+    console.error('[GuardLink] startParent failed', e);
+    toast('Could not start Parent mode: ' + e.message, 'error');
   }
-  saveParentChildren();
-  renderParentScreen();
-  showScreen('parent');
 }
 
 function subscribeParentToChild(code) {
-  if (state.parentSubs[code]) return; // already subscribed
+  if (state.parentSubs[code]) return;
   const subs = {};
-  subs.childUnsub = Store.watchChild(code, (data) => {
-    if (!data) return;
-    renderParentScreen();
-  });
-  subs.notifUnsub = Store.watchNotifications(code, (list) => {
-    renderParentScreen();
-  });
+  subs.childUnsub = Store.watchChild(code, () => renderParentScreen());
+  subs.notifUnsub = Store.watchNotifications(code, () => renderParentScreen());
   state.parentSubs[code] = subs;
 }
 
 function unsubscribeParentFromChild(code) {
   const s = state.parentSubs[code];
   if (!s) return;
-  try { s.childUnsub?.(); } catch {}
-  try { s.notifUnsub?.(); } catch {}
+  try { s.childUnsub && s.childUnsub(); } catch (_) {}
+  try { s.notifUnsub && s.notifUnsub(); } catch (_) {}
   delete state.parentSubs[code];
 }
 
@@ -1026,29 +1097,28 @@ function renderParentScreen() {
   const grid = $('#child-grid');
   const empty = $('#empty-state');
   const sub = $('#parent-sub');
+  if (!grid) return;
 
-  if (state.children.length === 0) {
-    empty.style.display = '';
+  if (!state.children.length) {
+    if (empty) empty.style.display = '';
     grid.innerHTML = '';
-    sub.textContent = 'Connect a child to begin.';
+    if (sub) sub.textContent = 'Connect a child to begin.';
     return;
   }
-  empty.style.display = 'none';
-  sub.textContent = `${state.children.length} child${state.children.length > 1 ? 'ren' : ''} connected`;
+  if (empty) empty.style.display = 'none';
+  if (sub) sub.textContent = state.children.length + ' child' + (state.children.length > 1 ? 'ren' : '') + ' connected';
+
+  // rebuild cards preserving expand state
+  const expandedCodes = $$('.child-card.expanded').map(c => c.dataset.code);
 
   grid.innerHTML = '';
   state.children.forEach(code => {
     const card = buildChildCard(code);
-    grid.appendChild(card);
-  });
-
-  // Re-hydrate cached data asynchronously
-  state.children.forEach(async (code) => {
-    const data = await Store.getChild(code);
-    if (data) {
-      const card = document.querySelector(`[data-code="${code}"]`);
-      if (card) paintCard(card, code, data);
+    if (expandedCodes.indexOf(code) !== -1) {
+      card.classList.add('expanded');
+      hydrateCardBody(card, code);
     }
+    grid.appendChild(card);
   });
 }
 
@@ -1057,46 +1127,47 @@ function buildChildCard(code) {
   card.className = 'child-card';
   card.dataset.code = code;
 
-  card.innerHTML = `
-    <div class="card-header" data-toggle>
-      <div class="child-avatar">?</div>
-      <div class="child-info">
-        <div class="child-name">Child ${code.slice(0,2)}…</div>
-        <div class="child-code">${code}</div>
-      </div>
-      <span class="notif-badge" style="display:none">0</span>
-      <button class="remove-child" title="Remove child">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-      </button>
-      <svg class="expand-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-    </div>
-    <div class="card-body"></div>
-  `;
+  card.innerHTML =
+    '<div class="card-header" data-toggle>' +
+      '<div class="child-avatar">?</div>' +
+      '<div class="child-info">' +
+        '<div class="child-name">Child ' + code.slice(0,2) + '…</div>' +
+        '<div class="child-code">' + code + '</div>' +
+      '</div>' +
+      '<span class="notif-badge" style="display:none">0</span>' +
+      '<button class="remove-child" type="button" title="Remove child">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>' +
+      '</button>' +
+      '<svg class="expand-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+    '</div>' +
+    '<div class="card-body"></div>';
 
-  // Toggle expand
   card.querySelector('[data-toggle]').addEventListener('click', (e) => {
     if (e.target.closest('.remove-child')) return;
     card.classList.toggle('expanded');
     if (card.classList.contains('expanded')) hydrateCardBody(card, code);
   });
 
-  // Remove
   card.querySelector('.remove-child').addEventListener('click', async (e) => {
     e.stopPropagation();
-    if (!confirm(`Remove child ${code}? They will stop sending notifications to you.`)) return;
-    await Store.removeChild(code, state.parentId);
-    unsubscribeParentFromChild(code);
-    state.children = state.children.filter(c => c !== code);
-    saveParentChildren();
-    renderParentScreen();
-    toast('Child removed', 'success');
+    if (!confirm('Remove child ' + code + '? They will stop sending notifications to you.')) return;
+    try {
+      await Store.removeChild(code);
+      unsubscribeParentFromChild(code);
+      state.children = state.children.filter(c => c !== code);
+      saveParentChildren();
+      renderParentScreen();
+      toast('Child removed', 'success');
+    } catch (err) {
+      console.error(err);
+      toast('Could not remove child', 'error');
+    }
   });
 
-  // initial paint from cached data
   (async () => {
     const data = await Store.getChild(code);
     if (data) paintCard(card, code, data);
-  })();
+  })().catch(() => {});
 
   return card;
 }
@@ -1105,93 +1176,77 @@ function paintCard(card, code, data) {
   const avatar = card.querySelector('.child-avatar');
   const name = card.querySelector('.child-name');
   const badge = card.querySelector('.notif-badge');
+  if (name) name.textContent = data.deviceName || ('Child ' + code.slice(0, 2) + '…');
+  if (avatar) avatar.textContent = (data.deviceName || 'CH').slice(0, 2).toUpperCase();
 
-  name.textContent = data.deviceName || ('Child ' + code.slice(0, 2) + '…');
-  avatar.textContent = (data.deviceName || 'CH').slice(0, 2).toUpperCase();
-
-  // notification count from cache
-  const key = 'gl_notif_' + code;
-  let count = 0;
-  try { count = (JSON.parse(localStorage.getItem(key) || '[]')).length; } catch {}
-  if (!fb && count > 0) { badge.style.display = ''; badge.textContent = count; }
-  else { badge.style.display = 'none'; }
-
-  if (card.classList.contains('expanded')) hydrateCardBody(card, code);
+  if (badge) {
+    let count = 0;
+    try { count = (JSON.parse(LS.get('gl_notif_' + code) || '[]')).length; } catch (_) {}
+    if (count > 0) { badge.style.display = ''; badge.textContent = count; }
+    else { badge.style.display = 'none'; }
+  }
 }
 
 async function hydrateCardBody(card, code) {
   const body = card.querySelector('.card-body');
+  if (!body) return;
   const data = await Store.getChild(code);
   if (!data) return;
-  const perms = { ...DEFAULT_PERMISSIONS, ...(data.permissions || {}) };
+  const perms = Object.assign({}, DEFAULT_PERMISSIONS, data.permissions || {});
 
-  // Build permissions list (only if not already present)
   if (!body.dataset.built) {
-    body.innerHTML = `
-      <div class="section-title">Permissions · what you can see</div>
-      <div class="perm-list"></div>
-      <div class="section-title">Live notifications</div>
-      <div class="notif-feed"></div>
-    `;
+    body.innerHTML =
+      '<div class="section-title">Permissions · what you can see</div>' +
+      '<div class="perm-list"></div>' +
+      '<div class="section-title">Live notifications</div>' +
+      '<div class="notif-feed"></div>';
     const list = body.querySelector('.perm-list');
-    Object.entries(PERM_META).forEach(([key, meta]) => {
+    Object.keys(PERM_META).forEach((key) => {
+      const meta = PERM_META[key];
       const row = document.createElement('div');
       row.className = 'perm-item';
-      row.innerHTML = `
-        <div class="perm-icon">${meta.icon}</div>
-        <div class="perm-label">${meta.label}</div>
-        <button class="toggle ${perms[key] ? 'on' : ''}" data-perm="${key}" aria-label="toggle ${key}"></button>
-      `;
+      row.innerHTML =
+        '<div class="perm-icon">' + meta.icon + '</div>' +
+        '<div class="perm-label">' + meta.label + '</div>' +
+        '<button class="toggle ' + (perms[key] ? 'on' : '') + '" data-perm="' + key + '" type="button"></button>';
       row.querySelector('.toggle').addEventListener('click', async (e) => {
         const btn = e.currentTarget;
         btn.classList.toggle('on');
-        const newPerms = { ...perms, [key]: btn.classList.contains('on') };
-        Object.assign(perms, newPerms);
-        await Store.updatePermissions(code, newPerms);
+        perms[key] = btn.classList.contains('on');
+        try { await Store.updatePermissions(code, Object.assign({}, perms)); }
+        catch (err) { console.error(err); toast('Could not update permission', 'error'); }
       });
       list.appendChild(row);
     });
     body.dataset.built = '1';
   } else {
-    // sync toggles
-    body.querySelectorAll('.toggle').forEach(t => {
-      const k = t.dataset.perm;
-      t.classList.toggle('on', !!perms[k]);
+    $$('.toggle', body).forEach(t => {
+      t.classList.toggle('on', !!perms[t.dataset.perm]);
     });
   }
 
-  // Notifications
   const feed = body.querySelector('.notif-feed');
-  const unsubNotif = Store.watchNotifications(code, (list) => {
-    feed.innerHTML = '';
-    list.forEach(n => {
-      if (!perms[n.app]) return; // permission filter
-      if (!perms.showContent && n.body) { /* still render but blurred */ }
-      const item = document.createElement('div');
-      item.className = 'notif-item';
-      item.innerHTML = `
-        <div class="notif-head">
-          <span class="notif-app">${n.app}</span>
-          <span class="notif-time">${timeAgo(n.timestamp)}</span>
-        </div>
-        <div class="notif-sender">${escapeHtml(n.sender || '')}</div>
-        <div class="notif-body ${perms.showContent ? '' : 'hidden'}">${escapeHtml(n.body || '')}</div>
-      `;
-      feed.appendChild(item);
+  if (feed) {
+    Store.watchNotifications(code, (notifs) => {
+      feed.innerHTML = '';
+      notifs.forEach(n => {
+        if (!perms[n.app]) return;
+        const item = document.createElement('div');
+        item.className = 'notif-item';
+        item.innerHTML =
+          '<div class="notif-head">' +
+            '<span class="notif-app">' + escapeHtml(n.app) + '</span>' +
+            '<span class="notif-time">' + timeAgo(n.timestamp) + '</span>' +
+          '</div>' +
+          '<div class="notif-sender">' + escapeHtml(n.sender || '') + '</div>' +
+          '<div class="notif-body ' + (perms.showContent ? '' : 'hidden') + '">' + escapeHtml(n.body || '') + '</div>';
+        feed.appendChild(item);
+      });
     });
-  });
-
-  // store the unsub for cleanup when card collapses? Keep simple: leave subscribed.
-  card._notifUnsub = unsubNotif;
+  }
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-/* =========================================================
-   9. Add child modal
-   ========================================================= */
+/* ============ MODAL ============ */
 const modal = $('#add-modal');
 const codeInput = $('#code-input');
 
@@ -1206,6 +1261,7 @@ $('#add-child-btn').addEventListener('click', openModal);
 $('#empty-add-btn').addEventListener('click', openModal);
 $('#modal-cancel').addEventListener('click', closeModal);
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
 codeInput.addEventListener('input', (e) => {
   e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
 });
@@ -1217,90 +1273,64 @@ $('#modal-connect').addEventListener('click', async () => {
   const code = codeInput.value.trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the full 6-letter code', 'error'); return; }
 
-  const data = await Store.getChild(code);
-  if (!data) { toast('No child found with this code', 'error'); return; }
-  if (data.parentId && data.parentId !== state.parentId) {
-    if (!confirm('This child is already connected to another parent. Overwrite?')) return;
-  }
-
   try {
+    const data = await Store.getChild(code);
+    if (!data) { toast('No child found with this code', 'error'); return; }
+    if (data.parentId && data.parentId !== state.parentId) {
+      if (!confirm('This child is already connected to another parent. Overwrite?')) return;
+    }
+
     await Store.connectParent(code, state.parentId);
-    if (!state.children.includes(code)) state.children.push(code);
+    if (state.children.indexOf(code) === -1) state.children.push(code);
     saveParentChildren();
     subscribeParentToChild(code);
     closeModal();
     renderParentScreen();
     toast('Child connected successfully', 'success');
-  } catch (e) {
-    console.error(e);
-    toast('Could not connect. Please try again.', 'error');
+  } catch (err) {
+    console.error('[GuardLink] connect failed', err);
+    toast('Could not connect: ' + err.message, 'error');
   }
 });
 
-/* =========================================================
-   10. Role selection
-   ========================================================= */
-$$('.role-card').forEach(btn => {
+/* ============ ROLE SELECTION ============ */
+$$('.role-card').forEach((btn) => {
   btn.addEventListener('click', () => {
     const role = btn.dataset.role;
+    console.log('[GuardLink] role clicked:', role);
     if (role === 'child')  startChild();
     if (role === 'parent') startParent();
   });
 });
 
-/* =========================================================
-   11. PWA — Add to home screen
-   ========================================================= */
+/* ============ PWA ============ */
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  $('#install-btn').style.display = '';
+  const b = $('#install-btn');
+  if (b) b.style.display = '';
 });
 $('#install-btn').addEventListener('click', async () => {
   if (!deferredPrompt) { toast('Use your browser menu → "Add to Home screen"'); return; }
   deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
+  const choice = await deferredPrompt.userChoice;
   deferredPrompt = null;
-  if (outcome === 'accepted') toast('Installed — open from home screen', 'success');
+  if (choice && choice.outcome === 'accepted') toast('Installed — open from home screen', 'success');
   $('#install-btn').style.display = 'none';
 });
 
-// Inline web app manifest (works without a separate file)
-(function injectManifest() {
-  const icon = "data:image/svg+xml," + encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
-       <rect width='100' height='100' rx='22' fill='%236366f1'/>
-       <path d='M50 22 L74 34 L74 56 Q74 74 50 82 Q26 74 26 56 L26 34 Z' fill='white'/>
-       <circle cx='50' cy='52' r='6' fill='%236366f1'/>
-     </svg>`
-  );
-  const manifest = {
-    name: 'GuardLink',
-    short_name: 'GuardLink',
-    description: 'Parental notification bridge',
-    start_url: '.',
-    display: 'standalone',
-    background_color: '#07070f',
-    theme_color: '#07070f',
-    icons: [
-      { src: icon, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
-      { src: icon, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }
-    ]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-  $('#manifest-link').href = URL.createObjectURL(blob);
+/* ============ BOOT ============ */
+(async function boot() {
+  try {
+    await initFirebase();
+    window.__GL_READY = true;
+    console.log('[GuardLink] ✅ ready');
+  } catch (e) {
+    console.error('[GuardLink] boot failed', e);
+  }
 })();
 
-/* =========================================================
-   12. Boot
-   ========================================================= */
-(async () => {
-  await initFirebase();
-  // Optionally auto-resume child if code already exists
-  // (uncomment to resume child on reload)
-  // const existing = localStorage.getItem('gl_my_child_code');
-  // if (existing) startChild();
 })();
 </script>
 </body>
