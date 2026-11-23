@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#07070f" />
+<meta name="description" content="GuardLink — Bridge your child's notifications to your phone, with full permission control." />
+<title>GuardLink — Parental Notification Bridge</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="manifest" id="manifest-link" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #07070f;
+    color: #e2e8f0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  button { font-family: inherit; }
+
+  /* ---------- Animated background ---------- */
+  .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden;
+        background: radial-gradient(ellipse at top, #0f0f23 0%, #07070f 65%); }
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55;
+         animation: float 22s ease-in-out infinite; will-change: transform; }
+  .orb1 { width: 520px; height: 520px; background: #6366f1; top: -120px; left: -120px; }
+  .orb2 { width: 420px; height: 420px; background: #8b5cf6; bottom: -140px; right: -100px; animation-delay: -7s; }
+  .orb3 { width: 320px; height: 320px; background: #06b6d4; top: 55%; left: 55%; transform: translate(-50%,-50%); animation-delay: -14s; opacity: .32; }
+  @keyframes float {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(60px,-40px) scale(1.1); }
+    66% { transform: translate(-40px,50px) scale(.94); }
+  }
+  .noise {
+    position: absolute; inset: 0; opacity: .025; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- Layout ---------- */
+  main#app { position: relative; min-height: 100vh; }
+  .screen { display: none; min-height: 100vh; padding: 24px;
+            flex-direction: column; animation: screenIn .55s cubic-bezier(.16,1,.3,1); }
+  .screen.active { display: flex; }
+  @keyframes screenIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- Landing ---------- */
+  .landing-content { margin: auto; max-width: 900px; text-align: center; width: 100%; padding: 20px 0; }
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 16px; margin-bottom: 32px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 999px;
+    font-weight: 600; font-size: 14px;
+    backdrop-filter: blur(10px);
+    animation: screenIn .6s;
+  }
+  .logo-mark {
+    width: 24px; height: 24px; border-radius: 7px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: grid; place-items: center;
+    box-shadow: 0 4px 14px rgba(99,102,241,.5);
+  }
+  .logo-mark svg { width: 14px; height: 14px; }
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(34px, 6vw, 64px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -.03em;
+    margin-bottom: 20px;
+    background: linear-gradient(180deg, #fff 0%, #a5b4fc 110%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: screenIn .7s .05s backwards;
+  }
+  .hero-sub {
+    font-size: clamp(15px, 2vw, 18px);
+    color: #94a3b8; max-width: 580px;
+    margin: 0 auto 48px; line-height: 1.65;
+    animation: screenIn .7s .1s backwards;
+  }
+  .role-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px; max-width: 720px; margin: 0 auto;
+    animation: screenIn .7s .15s backwards;
+  }
+  .role-card {
+    position: relative; overflow: hidden;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 24px;
+    padding: 34px 28px;
+    text-align: left; cursor: pointer;
+    color: inherit;
+    transition: transform .4s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .4s;
+    backdrop-filter: blur(20px);
+  }
+  .role-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(99,102,241,.18));
+    opacity: 0; transition: opacity .4s;
+  }
+  .role-card:hover { transform: translateY(-6px); border-color: rgba(139,92,246,.4);
+                     box-shadow: 0 24px 60px -20px rgba(99,102,241,.35); }
+  .role-card:hover::before { opacity: 1; }
+  .role-card > * { position: relative; }
+  .role-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: grid; place-items: center; margin-bottom: 22px;
+  }
+  .role-icon svg { width: 28px; height: 28px; }
+  .role-card[data-role="child"] .role-icon {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    box-shadow: 0 10px 30px -6px rgba(6,182,212,.5);
+  }
+  .role-card[data-role="parent"] .role-icon {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    box-shadow: 0 10px 30px -6px rgba(139,92,246,.5);
+  }
+  .role-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .role-desc { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+  .role-arrow {
+    position: absolute; top: 34px; right: 28px;
+    color: #64748b; transition: transform .3s, color .3s;
+  }
+  .role-card:hover .role-arrow { transform: translateX(4px); color: #a5b4fc; }
+
+  /* ---------- Shared buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 12px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .2s; border: none;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; box-shadow: 0 6px 22px -6px rgba(99,102,241,.6);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 30px -6px rgba(99,102,241,.7); }
+  .btn-ghost {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    color: #e2e8f0;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.1); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    display: grid; place-items: center; color: #e2e8f0;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.05); }
+
+  /* ---------- Screen header ---------- */
+  .screen-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 24px;
+    max-width: 900px; width: 100%; margin-inline: auto;
+    padding-top: 8px;
+  }
+  .header-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 0 10px rgba(139,92,246,.7);
+  }
+
+  /* ---------- Child screen ---------- */
+  .child-content { margin: auto; max-width: 500px; width: 100%; text-align: center; padding: 20px 0; }
+  .child-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; margin-bottom: 20px;
+    border-radius: 999px;
+    background: rgba(6,182,212,.1);
+    border: 1px solid rgba(6,182,212,.3);
+    color: #22d3ee; font-size: 13px; font-weight: 600;
+    letter-spacing: .02em;
+  }
+  .child-title { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; margin-bottom: 8px; letter-spacing: -.02em; }
+  .child-desc { color: #94a3b8; margin-bottom: 32px; font-size: 15px; line-height: 1.6; }
+
+  .code-display {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 24px;
+    padding: 32px 20px 24px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+  .code-display::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,.5), transparent);
+  }
+  .code-letters { display: flex; gap: 10px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .code-letter {
+    width: 54px; height: 70px;
+    background: linear-gradient(180deg, rgba(139,92,246,.18), rgba(99,102,241,.06));
+    border: 1px solid rgba(139,92,246,.32);
+    border-radius: 13px;
+    display: grid; place-items: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px; font-weight: 700; color: #a5b4fc;
+    animation: letterPop .55s cubic-bezier(.34,1.56,.64,1) backwards;
+    box-shadow: 0 4px 20px -8px rgba(139,92,246,.3), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .code-letter:nth-child(1){animation-delay:.05s}.code-letter:nth-child(2){animation-delay:.1s}
+  .code-letter:nth-child(3){animation-delay:.15s}.code-letter:nth-child(4){animation-delay:.2s}
+  .code-letter:nth-child(5){animation-delay:.25s}.code-letter:nth-child(6){animation-delay:.3s}
+  @keyframes letterPop { from{opacity:0;transform:translateY(12px) scale(.85)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 12px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    color: #e2e8f0; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all .2s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.1); }
+  .copy-btn.copied { background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.4); color: #34d399; }
+
+  .status-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 20px; margin-bottom: 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    text-align: left;
+  }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 0 4px rgba(245,158,11,.15);
+    animation: pulse 2s ease-in-out infinite; flex-shrink: 0;
+  }
+  .status-dot.connected { background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.15); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+  .status-text { flex: 1; min-width: 0; }
+  .status-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin-bottom: 3px; }
+  .status-value { font-size: 15px; font-weight: 500; }
+  .status-value.connected { color: #34d399; }
+
+  .demo-hint {
+    font-size: 12px; color: #64748b;
+    text-align: center; margin-top: 14px; line-height: 1.5;
+  }
+
+  /* ---------- Parent screen ---------- */
+  .parent-content { max-width: 900px; margin: 0 auto; width: 100%; padding-bottom: 40px; }
+  .parent-header {
+    display: flex; justify-content: space-between;
+    align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .parent-title { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+  .parent-sub { color: #64748b; font-size: 14px; margin-top: 4px; }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .empty-state {
+    text-align: center; padding: 70px 24px;
+    background: rgba(255,255,255,.02);
+    border: 1px dashed rgba(255,255,255,.1);
+    border-radius: 24px;
+  }
+  .empty-icon { font-size: 44px; margin-bottom: 16px; opacity: .55; }
+  .empty-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .empty-desc { color: #94a3b8; font-size: 14px; margin-bottom: 24px; max-width: 380px; margin-inline: auto; line-height: 1.6; }
+
+  .child-grid { display: grid; gap: 16px; }
+
+  .child-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: border-color .25s, box-shadow .25s;
+    animation: screenIn .5s cubic-bezier(.16,1,.3,1);
+  }
+  .child-card:hover { border-color: rgba(139,92,246,.28); }
+  .child-card.expanded { border-color: rgba(139,92,246,.28); box-shadow: 0 20px 50px -20px rgba(99,102,241,.35); }
+
+  .card-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 20px; cursor: pointer;
+    user-select: none;
+  }
+  .child-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: grid; place-items: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 16px; color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 6px 18px -6px rgba(99,102,241,.5);
+  }
+  .child-info { flex: 1; min-width: 0; }
+  .child-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+  .child-code { font-size: 12px; color: #64748b; font-family: 'JetBrains Mono', 'SFMono-Regular', monospace; letter-spacing: .12em; }
+
+  .notif-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 24px; height: 24px; padding: 0 8px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ec4899, #f43f5e);
+    color: #fff; font-size: 11px; font-weight: 700;
+    box-shadow: 0 4px 12px -2px rgba(236,72,153,.5);
+    animation: screenIn .3s;
+  }
+  .expand-icon { color: #64748b; transition: transform .3s; }
+  .child-card.expanded .expand-icon { transform: rotate(180deg); }
+
+  .card-body { display: none; padding: 0 20px 20px; border-top: 1px solid rgba(255,255,255,.06); margin-top: 2px; }
+  .child-card.expanded .card-body { display: block; animation: screenIn .35s; }
+
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    color: #64748b; font-weight: 600; margin: 18px 0 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .perm-list { display: grid; gap: 8px; }
+  .perm-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 12px;
+    transition: background .2s;
+  }
+  .perm-item:hover { background: rgba(255,255,255,.04); }
+  .perm-icon { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+  .perm-label { flex: 1; font-size: 13.5px; font-weight: 500; }
+
+  .toggle {
+    position: relative; width: 44px; height: 26px; border-radius: 999px;
+    background: rgba(255,255,255,.1);
+    border: none; cursor: pointer; transition: background .3s; flex-shrink: 0;
+    padding: 0;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .toggle.on { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .toggle.on::after { transform: translateX(18px); }
+
+  .notif-feed { display: grid; gap: 10px; max-height: 340px; overflow-y: auto; padding-right: 4px; margin-top: 4px; }
+  .notif-feed::-webkit-scrollbar { width: 4px; }
+  .notif-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 999px; }
+  .notif-feed:empty::after {
+    content: 'No notifications yet — they will appear here in real time.';
+    display: block; text-align: center; padding: 28px 16px;
+    color: #64748b; font-size: 13px;
+    border: 1px dashed rgba(255,255,255,.08);
+    border-radius: 12px;
+  }
+  .notif-item {
+    padding: 12px 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    animation: screenIn .4s;
+  }
+  .notif-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .notif-app {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 6px;
+    background: rgba(139,92,246,.18); color: #a5b4fc;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .notif-time { font-size: 11px; color: #64748b; margin-left: auto; }
+  .notif-sender { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .notif-body { font-size: 13px; color: #94a3b8; line-height: 1.5; transition: filter .3s; }
+  .notif-body.hidden { filter: blur(5px); user-select: none; }
+
+  .remove-child {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: transparent; border: 1px solid transparent;
+    color: #64748b; display: grid; place-items: center;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+  }
+  .remove-child:hover { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #f87171; }
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(7,7,15,.85);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: linear-gradient(180deg, #15152b, #0f0f23);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 420px; width: 100%;
+    transform: scale(.94) translateY(10px);
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.6);
+  }
+  .modal-backdrop.show .modal { transform: scale(1) translateY(0); }
+  .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .modal-desc { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.55; }
+
+  .code-input {
+    width: 100%; padding: 18px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.03);
+    color: #e2e8f0;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 22px; font-weight: 700;
+    letter-spacing: .45em; text-align: center;
+    text-transform: uppercase;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none; margin-bottom: 18px;
+  }
+  .code-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 4px rgba(139,92,246,.12); }
+  .code-input::placeholder { letter-spacing: .2em; color: #334155; font-weight: 500; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+
+  /* ---------- Toast ---------- */
+  .toast-container {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 200; display: flex; flex-direction: column;
+    gap: 10px; pointer-events: none;
+    padding: 0 16px; max-width: calc(100% - 32px);
+  }
+  .toast {
+    padding: 12px 18px; border-radius: 12px;
+    background: rgba(30,30,50,.97);
+    border: 1px solid rgba(255,255,255,.1);
+    backdrop-filter: blur(10px);
+    font-size: 13.5px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    animation: toastIn .35s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,.5);
+    white-space: nowrap;
+  }
+  .toast.success { border-color: rgba(16,185,129,.4); color: #34d399; }
+  .toast.error { border-color: rgba(239,68,68,.4); color: #f87171; }
+  @keyframes toastIn { from{opacity:0;transform:translateY(20px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  .demo-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    text-align: center;
+    background: linear-gradient(90deg, rgba(245,158,11,.12), rgba(236,72,153,.12));
+    border-bottom: 1px solid rgba(245,158,11,.2);
+    padding: 8px 16px;
+    font-size: 12px; color: #fbbf24; font-weight: 500;
+    backdrop-filter: blur(10px);
+  }
+  .demo-banner strong { color: #fcd34d; }
+  body.demo-mode { padding-top: 32px; }
+
+  @media (max-width: 560px) {
+    .code-letter { width: 44px; height: 60px; font-size: 26px; border-radius: 11px; }
+    .code-letters { gap: 7px; }
+    .code-display { padding: 26px 14px 20px; }
+    .card-header { padding: 16px; gap: 12px; }
+    .card-body { padding: 0 16px 16px; }
+    .modal { padding: 24px; }
+    .parent-header { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- animated background -->
+<div class="bg">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="noise"></div>
+</div>
+
+<main id="app">
+
+  <!-- ============ LANDING ============ -->
+  <section id="screen-landing" class="screen active">
+    <div class="landing-content">
+      <div class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l8 4v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z"/>
+          </svg>
+        </span>
+        <span>GuardLink</span>
+      </div>
+      <h1 class="hero-title">Stay close,<br/>stay informed.</h1>
+      <p class="hero-sub">A gentle bridge between your child's phone and yours. See what matters — only what you've allowed. Nothing more, nothing less.</p>
+
+      <div class="role-cards">
+        <button class="role-card" data-role="child">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v6M6 22h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              <circle cx="12" cy="17" r="1.2" fill="white"/>
+            </svg>
+          </div>
+          <svg class="role-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          <div class="role-title">I'm a Child</div>
+          <div class="role-desc">Get a 6-letter code and share it with your parent. Then choose exactly what to share.</div>
+        </button>
+
+        <button class="role-card" data-role="parent">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <svg class="role-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          <div class="role-title">I'm a Parent</div>
+          <div class="role-desc">Add one or more children, control permissions per app, and receive their notifications in real time.</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHILD SCREEN ============ -->
+  <section id="screen-child" class="screen">
+    <header class="screen-header">
+      <button class="icon-btn" data-back>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="header-title"><span class="dot"></span> Child Mode</div>
+      <div style="width:40px"></div>
+    </header>
+
+    <div class="child-content">
+      <div class="child-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
+        Your connection code
+      </div>
+      <h2 class="child-title">Share this with your parent</h2>
+      <p class="child-desc">Your parent will enter this code to connect. Only what you allow will be visible to them.</p>
+
+      <div class="code-display">
+        <div class="code-letters" id="code-letters"></div>
+        <button class="copy-btn" id="copy-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span>Copy code</span>
+        </button>
+      </div>
+
+      <div class="status-card">
+        <div class="status-dot" id="status-dot"></div>
+        <div class="status-text">
+          <div class="status-label">Status</div>
+          <div class="status-value" id="status-value">Waiting for parent to connect…</div>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost" id="test-notif-btn" style="width:100%; justify-content:center; margin-bottom:12px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Send test notification (demo)
+      </button>
+
+      <p class="demo-hint">Real notification forwarding requires our Android companion app on the child's phone. For now, use this button to simulate one.</p>
+    </div>
+  </section>
+
+  <!-- ============ PARENT SCREEN ============ -->
+  <section id="screen-parent" class="screen">
+    <div class="parent-content">
+      <header class="screen-header" style="padding-top:0;">
+        <button class="icon-btn" data-back>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="header-title"><span class="dot"></span> Parent Mode</div>
+        <div style="width:40px"></div>
+      </header>
+
+      <div class="parent-header">
+        <div>
+          <h2 class="parent-title">Your children</h2>
+          <p class="parent-sub" id="parent-sub">Connect a child to begin.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm" id="install-btn" style="display:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M3 21h18"/></svg>
+            Add to home screen
+          </button>
+          <button class="btn btn-primary btn-sm" id="add-child-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add child
+          </button>
+        </div>
+      </div>
+
+      <div id="children-area">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">👨‍👩‍👧</div>
+          <div class="empty-title">No children connected yet</div>
+          <div class="empty-desc">Tap <strong>Add child</strong> and enter the 6-letter code from your child's phone.</div>
+          <button class="btn btn-primary" id="empty-add-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add your first child
+          </button>
+        </div>
+        <div class="child-grid" id="child-grid"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-backdrop" id="add-modal">
+  <div class="modal">
+    <h3 class="modal-title">Add a child</h3>
+    <p class="modal-desc">Ask your child to open GuardLink in Child mode and share their 6-letter code.</p>
+    <input class="code-input" id="code-input" type="text" inputmode="text" autocomplete="off" maxlength="6" placeholder="ABCDEF" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-connect">Connect</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+/* =========================================================
+   1. CONFIG — paste your Firebase config here
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyD4uWCxa_3Lt4A9u0UjcFsfFNmNJfDx2Nc",
+  authDomain: "childsafetyallinone.firebaseapp.com",
+  databaseURL: "https://childsafetyallinone-default-rtdb.firebaseio.com",
+  projectId: "childsafetyallinone",
+  storageBucket: "childsafetyallinone.firebasestorage.app",
+  messagingSenderId: "66259398440",
+  appId: "1:66259398440:web:7641b41fdd4bcd42b56a1d",
+  measurementId: "G-GW844RCZD9"
+};
+
+const FIREBASE_ENABLED = !firebaseConfig.apiKey.includes("PASTE");
+
+/* =========================================================
+   2. Tiny helpers
+   ========================================================= */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+const uuid = () => {
+  try { return crypto.randomUUID(); }
+  catch { return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2); }
+};
+
+const genCode = () => {
+  // 6 uppercase letters, excluding I & O to avoid confusion
+  const C = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += C[Math.floor(Math.random() * C.length)];
+  return s;
+};
+
+const timeAgo = (ts) => {
+  const d = Date.now() - ts;
+  if (d < 60000) return 'just now';
+  if (d < 3600000) return Math.floor(d / 60000) + 'm ago';
+  if (d < 86400000) return Math.floor(d / 3600000) + 'h ago';
+  return Math.floor(d / 86400000) + 'd ago';
+};
+
+const toast = (msg, type = 'info') => {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type !== 'info' ? ' ' + type : '');
+  el.textContent = msg;
+  $('#toast-container').appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s, transform .3s'; el.style.opacity = 0; el.style.transform = 'translateY(10px)'; }, 2600);
+  setTimeout(() => el.remove(), 3000);
+};
+
+/* =========================================================
+   3. Firebase init (only if configured)
+   ========================================================= */
+let fb = null;
+async function initFirebase() {
+  if (!FIREBASE_ENABLED) {
+    document.body.classList.add('demo-mode');
+    const b = document.createElement('div');
+    b.className = 'demo-banner';
+    b.innerHTML = '<strong>Demo mode</strong> · Data is stored locally in this browser. Paste Firebase config in <code>firebaseConfig</code> to sync across real devices.';
+    document.body.prepend(b);
+    return;
+  }
+  try {
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const app = appMod.initializeApp(firebaseConfig);
+    fb = { ...fsMod, app };
+  } catch (e) {
+    console.error('Firebase init failed', e);
+    toast('Firebase init failed — using demo mode', 'error');
+  }
+}
+
+/* =========================================================
+   4. Storage abstraction (Firebase ↔ localStorage)
+   ========================================================= */
+const DEFAULT_PERMISSIONS = {
+  whatsapp: true,
+  instagram: false,
+  sms: true,
+  calls: false,
+  other: false,
+  showContent: true
+};
+
+const PERM_META = {
+  whatsapp:    { icon: '💬', label: 'WhatsApp messages' },
+  instagram:   { icon: '📸', label: 'Instagram DMs' },
+  sms:         { icon: '✉️', label: 'SMS messages' },
+  calls:       { icon: '📞', label: 'Calls & missed calls' },
+  other:       { icon: '🔔', label: 'Other app notifications' },
+  showContent: { icon: '👁️', label: 'Show message text' }
+};
+
+const Store = {
+  async createChild(code) {
+    const data = {
+      code,
+      deviceName: navigator.userAgent.includes('Mobile') ? 'Mobile device' : 'Desktop',
+      createdAt: Date.now(),
+      permissions: { ...DEFAULT_PERMISSIONS },
+      parentId: null,
+      connected: false
+    };
+    if (fb) {
+      await fb.setDoc(fb.doc(fb.db, 'children', code), data);
+    } else {
+      localStorage.setItem('gl_child_' + code, JSON.stringify(data));
+    }
+    return data;
+  },
+
+  async getChild(code) {
+    if (fb) {
+      const snap = await fb.getDoc(fb.doc(fb.db, 'children', code));
+      return snap.exists() ? snap.data() : null;
+    }
+    const raw = localStorage.getItem('gl_child_' + code);
+    return raw ? JSON.parse(raw) : null;
+  },
+
+  watchChild(code, cb) {
+    if (fb) {
+      return fb.onSnapshot(fb.doc(fb.db, 'children', code), snap => {
+        cb(snap.exists() ? snap.data() : null);
+      });
+    }
+    const handler = (e) => {
+      if (e.key === 'gl_child_' + code) cb(e.newValue ? JSON.parse(e.newValue) : null);
+    };
+    window.addEventListener('storage', handler);
+    this.getChild(code).then(cb);
+    return () => window.removeEventListener('storage', handler);
+  },
+
+  async connectParent(code, parentId) {
+    const existing = await this.getChild(code);
+    if (!existing) throw new Error('CODE_NOT_FOUND');
+    const data = { ...existing, parentId, connected: true };
+    if (fb) {
+      await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId, connected: true });
+    } else {
+      localStorage.setItem('gl_child_' + code, JSON.stringify(data));
+    }
+    return data;
+  },
+
+  async updatePermissions(code, permissions) {
+    if (fb) {
+      await fb.updateDoc(fb.doc(fb.db, 'children', code), { permissions });
+    } else {
+      const c = await this.getChild(code);
+      if (!c) return;
+      c.permissions = permissions;
+      localStorage.setItem('gl_child_' + code, JSON.stringify(c));
+    }
+  },
+
+  async removeChild(code, parentId) {
+    if (fb) {
+      await fb.updateDoc(fb.doc(fb.db, 'children', code), { parentId: null, connected: false });
+    } else {
+      const c = await this.getChild(code);
+      if (!c) return;
+      c.parentId = null;
+      c.connected = false;
+      localStorage.setItem('gl_child_' + code, JSON.stringify(c));
+    }
+  },
+
+  async addNotification(code, notif) {
+    const data = { ...notif, id: uuid(), timestamp: Date.now() };
+    if (fb) {
+      await fb.addDoc(fb.collection(fb.db, 'children', code, 'notifications'), data);
+    } else {
+      const key = 'gl_notif_' + code;
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      arr.unshift(data);
+      localStorage.setItem(key, JSON.stringify(arr.slice(0, 100)));
+    }
+    return data;
+  },
+
+  watchNotifications(code, cb) {
+    if (fb) {
+      const q = fb.query(
+        fb.collection(fb.db, 'children', code, 'notifications'),
+        fb.orderBy('timestamp', 'desc'),
+        fb.limit(50)
+      );
+      return fb.onSnapshot(q, snap => cb(snap.docs.map(d => d.data())));
+    }
+    const key = 'gl_notif_' + code;
+    const handler = (e) => { if (e.key === key) cb(JSON.parse(e.newValue || '[]')); };
+    window.addEventListener('storage', handler);
+    cb(JSON.parse(localStorage.getItem(key) || '[]'));
+    return () => window.removeEventListener('storage', handler);
+  }
+};
+
+/* =========================================================
+   5. App state
+   ========================================================= */
+const state = {
+  childCode:   null,
+  childData:   null,
+  childSub:    null,
+  parentId:    localStorage.getItem('gl_parent_id') || (() => {
+    const id = uuid(); localStorage.setItem('gl_parent_id', id); return id;
+  })(),
+  children:    JSON.parse(localStorage.getItem('gl_parent_children') || '[]'), // [{code, data, notifications}]
+  parentSubs:  {} // code -> { childUnsub, notifUnsub }
+};
+
+/* =========================================================
+   6. Navigation
+   ========================================================= */
+function showScreen(name) {
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (!el) return;
+  el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+
+$$('[data-back]').forEach(b => b.addEventListener('click', () => {
+  cleanupChildSub();
+  showScreen('landing');
+}));
+
+function cleanupChildSub() {
+  if (state.childSub) { try { state.childSub(); } catch {} state.childSub = null; }
+}
+
+/* =========================================================
+   7. Child flow
+   ========================================================= */
+async function startChild() {
+  let code = localStorage.getItem('gl_my_child_code');
+  let exists = code ? await Store.getChild(code) : null;
+  if (!code || !exists) {
+    code = genCode();
+    localStorage.setItem('gl_my_child_code', code);
+    await Store.createChild(code);
+  }
+  state.childCode = code;
+  state.childData = await Store.getChild(code);
+  renderChildScreen();
+
+  cleanupChildSub();
+  state.childSub = Store.watchChild(code, (data) => {
+    if (!data) return;
+    state.childData = data;
+    updateChildStatus(data);
+  });
+
+  showScreen('child');
+}
+
+function renderChildScreen() {
+  const container = $('#code-letters');
+  container.innerHTML = '';
+  for (const ch of state.childCode) {
+    const d = document.createElement('div');
+    d.className = 'code-letter';
+    d.textContent = ch;
+    container.appendChild(d);
+  }
+  $('#copy-btn').classList.remove('copied');
+  $('#copy-btn').querySelector('span').textContent = 'Copy code';
+  updateChildStatus(state.childData || {});
+}
+
+function updateChildStatus(data) {
+  const dot = $('#status-dot');
+  const val = $('#status-value');
+  if (data && data.connected) {
+    dot.classList.add('connected');
+    val.classList.add('connected');
+    val.textContent = 'Connected — your parent can see selected notifications';
+  } else {
+    dot.classList.remove('connected');
+    val.classList.remove('connected');
+    val.textContent = 'Waiting for parent to connect…';
+  }
+}
+
+$('#copy-btn').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(state.childCode);
+    const btn = $('#copy-btn');
+    btn.classList.add('copied');
+    btn.querySelector('span').textContent = 'Copied!';
+    toast('Code copied to clipboard', 'success');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.querySelector('span').textContent = 'Copy code';
+    }, 1800);
+  } catch {
+    toast('Copy failed — select the code manually', 'error');
+  }
+});
+
+$('#test-notif-btn').addEventListener('click', async () => {
+  if (!state.childCode) return;
+  const apps = ['whatsapp', 'instagram', 'sms', 'calls', 'other'];
+  const pick = apps[Math.floor(Math.random() * apps.length)];
+  const samples = {
+    whatsapp:  { sender: 'Mom',            body: 'Beta, dinner ready hai. Ghar aa jao.' },
+    instagram: { sender: 'sara_khan',      body: 'Loved your post! 🔥 Check DM.' },
+    sms:       { sender: '+91 98765 43210', body: 'Your OTP is 482910. Do not share.' },
+    calls:     { sender: 'Unknown number',  body: 'Missed call · 2 attempts' },
+    other:     { sender: 'System',          body: 'Battery low — 15% remaining.' }
+  };
+  await Store.addNotification(state.childCode, { app: pick, ...samples[pick] });
+  toast('Notification forwarded to parent', 'success');
+});
+
+/* =========================================================
+   8. Parent flow
+   ========================================================= */
+function loadParentChildren() {
+  try { state.children = JSON.parse(localStorage.getItem('gl_parent_children') || '[]'); }
+  catch { state.children = []; }
+}
+function saveParentChildren() {
+  localStorage.setItem('gl_parent_children', JSON.stringify(state.children));
+}
+
+async function startParent() {
+  loadParentChildren();
+  // Hydrate & subscribe
+  for (const code of [...state.children]) {
+    const data = await Store.getChild(code);
+    if (!data) {
+      state.children = state.children.filter(c => c !== code);
+      continue;
+    }
+    subscribeParentToChild(code);
+  }
+  saveParentChildren();
+  renderParentScreen();
+  showScreen('parent');
+}
+
+function subscribeParentToChild(code) {
+  if (state.parentSubs[code]) return; // already subscribed
+  const subs = {};
+  subs.childUnsub = Store.watchChild(code, (data) => {
+    if (!data) return;
+    renderParentScreen();
+  });
+  subs.notifUnsub = Store.watchNotifications(code, (list) => {
+    renderParentScreen();
+  });
+  state.parentSubs[code] = subs;
+}
+
+function unsubscribeParentFromChild(code) {
+  const s = state.parentSubs[code];
+  if (!s) return;
+  try { s.childUnsub?.(); } catch {}
+  try { s.notifUnsub?.(); } catch {}
+  delete state.parentSubs[code];
+}
+
+function renderParentScreen() {
+  const grid = $('#child-grid');
+  const empty = $('#empty-state');
+  const sub = $('#parent-sub');
+
+  if (state.children.length === 0) {
+    empty.style.display = '';
+    grid.innerHTML = '';
+    sub.textContent = 'Connect a child to begin.';
+    return;
+  }
+  empty.style.display = 'none';
+  sub.textContent = `${state.children.length} child${state.children.length > 1 ? 'ren' : ''} connected`;
+
+  grid.innerHTML = '';
+  state.children.forEach(code => {
+    const card = buildChildCard(code);
+    grid.appendChild(card);
+  });
+
+  // Re-hydrate cached data asynchronously
+  state.children.forEach(async (code) => {
+    const data = await Store.getChild(code);
+    if (data) {
+      const card = document.querySelector(`[data-code="${code}"]`);
+      if (card) paintCard(card, code, data);
+    }
+  });
+}
+
+function buildChildCard(code) {
+  const card = document.createElement('div');
+  card.className = 'child-card';
+  card.dataset.code = code;
+
+  card.innerHTML = `
+    <div class="card-header" data-toggle>
+      <div class="child-avatar">?</div>
+      <div class="child-info">
+        <div class="child-name">Child ${code.slice(0,2)}…</div>
+        <div class="child-code">${code}</div>
+      </div>
+      <span class="notif-badge" style="display:none">0</span>
+      <button class="remove-child" title="Remove child">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+      </button>
+      <svg class="expand-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="card-body"></div>
+  `;
+
+  // Toggle expand
+  card.querySelector('[data-toggle]').addEventListener('click', (e) => {
+    if (e.target.closest('.remove-child')) return;
+    card.classList.toggle('expanded');
+    if (card.classList.contains('expanded')) hydrateCardBody(card, code);
+  });
+
+  // Remove
+  card.querySelector('.remove-child').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!confirm(`Remove child ${code}? They will stop sending notifications to you.`)) return;
+    await Store.removeChild(code, state.parentId);
+    unsubscribeParentFromChild(code);
+    state.children = state.children.filter(c => c !== code);
+    saveParentChildren();
+    renderParentScreen();
+    toast('Child removed', 'success');
+  });
+
+  // initial paint from cached data
+  (async () => {
+    const data = await Store.getChild(code);
+    if (data) paintCard(card, code, data);
+  })();
+
+  return card;
+}
+
+function paintCard(card, code, data) {
+  const avatar = card.querySelector('.child-avatar');
+  const name = card.querySelector('.child-name');
+  const badge = card.querySelector('.notif-badge');
+
+  name.textContent = data.deviceName || ('Child ' + code.slice(0, 2) + '…');
+  avatar.textContent = (data.deviceName || 'CH').slice(0, 2).toUpperCase();
+
+  // notification count from cache
+  const key = 'gl_notif_' + code;
+  let count = 0;
+  try { count = (JSON.parse(localStorage.getItem(key) || '[]')).length; } catch {}
+  if (!fb && count > 0) { badge.style.display = ''; badge.textContent = count; }
+  else { badge.style.display = 'none'; }
+
+  if (card.classList.contains('expanded')) hydrateCardBody(card, code);
+}
+
+async function hydrateCardBody(card, code) {
+  const body = card.querySelector('.card-body');
+  const data = await Store.getChild(code);
+  if (!data) return;
+  const perms = { ...DEFAULT_PERMISSIONS, ...(data.permissions || {}) };
+
+  // Build permissions list (only if not already present)
+  if (!body.dataset.built) {
+    body.innerHTML = `
+      <div class="section-title">Permissions · what you can see</div>
+      <div class="perm-list"></div>
+      <div class="section-title">Live notifications</div>
+      <div class="notif-feed"></div>
+    `;
+    const list = body.querySelector('.perm-list');
+    Object.entries(PERM_META).forEach(([key, meta]) => {
+      const row = document.createElement('div');
+      row.className = 'perm-item';
+      row.innerHTML = `
+        <div class="perm-icon">${meta.icon}</div>
+        <div class="perm-label">${meta.label}</div>
+        <button class="toggle ${perms[key] ? 'on' : ''}" data-perm="${key}" aria-label="toggle ${key}"></button>
+      `;
+      row.querySelector('.toggle').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.classList.toggle('on');
+        const newPerms = { ...perms, [key]: btn.classList.contains('on') };
+        Object.assign(perms, newPerms);
+        await Store.updatePermissions(code, newPerms);
+      });
+      list.appendChild(row);
+    });
+    body.dataset.built = '1';
+  } else {
+    // sync toggles
+    body.querySelectorAll('.toggle').forEach(t => {
+      const k = t.dataset.perm;
+      t.classList.toggle('on', !!perms[k]);
+    });
+  }
+
+  // Notifications
+  const feed = body.querySelector('.notif-feed');
+  const unsubNotif = Store.watchNotifications(code, (list) => {
+    feed.innerHTML = '';
+    list.forEach(n => {
+      if (!perms[n.app]) return; // permission filter
+      if (!perms.showContent && n.body) { /* still render but blurred */ }
+      const item = document.createElement('div');
+      item.className = 'notif-item';
+      item.innerHTML = `
+        <div class="notif-head">
+          <span class="notif-app">${n.app}</span>
+          <span class="notif-time">${timeAgo(n.timestamp)}</span>
+        </div>
+        <div class="notif-sender">${escapeHtml(n.sender || '')}</div>
+        <div class="notif-body ${perms.showContent ? '' : 'hidden'}">${escapeHtml(n.body || '')}</div>
+      `;
+      feed.appendChild(item);
+    });
+  });
+
+  // store the unsub for cleanup when card collapses? Keep simple: leave subscribed.
+  card._notifUnsub = unsubNotif;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =========================================================
+   9. Add child modal
+   ========================================================= */
+const modal = $('#add-modal');
+const codeInput = $('#code-input');
+
+function openModal() {
+  modal.classList.add('show');
+  codeInput.value = '';
+  setTimeout(() => codeInput.focus(), 150);
+}
+function closeModal() { modal.classList.remove('show'); }
+
+$('#add-child-btn').addEventListener('click', openModal);
+$('#empty-add-btn').addEventListener('click', openModal);
+$('#modal-cancel').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+codeInput.addEventListener('input', (e) => {
+  e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
+});
+codeInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('#modal-connect').click();
+});
+
+$('#modal-connect').addEventListener('click', async () => {
+  const code = codeInput.value.trim().toUpperCase();
+  if (code.length !== 6) { toast('Enter the full 6-letter code', 'error'); return; }
+
+  const data = await Store.getChild(code);
+  if (!data) { toast('No child found with this code', 'error'); return; }
+  if (data.parentId && data.parentId !== state.parentId) {
+    if (!confirm('This child is already connected to another parent. Overwrite?')) return;
+  }
+
+  try {
+    await Store.connectParent(code, state.parentId);
+    if (!state.children.includes(code)) state.children.push(code);
+    saveParentChildren();
+    subscribeParentToChild(code);
+    closeModal();
+    renderParentScreen();
+    toast('Child connected successfully', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Could not connect. Please try again.', 'error');
+  }
+});
+
+/* =========================================================
+   10. Role selection
+   ========================================================= */
+$$('.role-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const role = btn.dataset.role;
+    if (role === 'child')  startChild();
+    if (role === 'parent') startParent();
+  });
+});
+
+/* =========================================================
+   11. PWA — Add to home screen
+   ========================================================= */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('#install-btn').style.display = '';
+});
+$('#install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) { toast('Use your browser menu → "Add to Home screen"'); return; }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  if (outcome === 'accepted') toast('Installed — open from home screen', 'success');
+  $('#install-btn').style.display = 'none';
+});
+
+// Inline web app manifest (works without a separate file)
+(function injectManifest() {
+  const icon = "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+       <rect width='100' height='100' rx='22' fill='%236366f1'/>
+       <path d='M50 22 L74 34 L74 56 Q74 74 50 82 Q26 74 26 56 L26 34 Z' fill='white'/>
+       <circle cx='50' cy='52' r='6' fill='%236366f1'/>
+     </svg>`
+  );
+  const manifest = {
+    name: 'GuardLink',
+    short_name: 'GuardLink',
+    description: 'Parental notification bridge',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#07070f',
+    theme_color: '#07070f',
+    icons: [
+      { src: icon, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: icon, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  $('#manifest-link').href = URL.createObjectURL(blob);
+})();
+
+/* =========================================================
+   12. Boot
+   ========================================================= */
+(async () => {
+  await initFirebase();
+  // Optionally auto-resume child if code already exists
+  // (uncomment to resume child on reload)
+  // const existing = localStorage.getItem('gl_my_child_code');
+  // if (existing) startChild();
+})();
+</script>
+</body>
+</html>
